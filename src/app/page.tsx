@@ -7,6 +7,7 @@ import axios from 'axios';
 import Link from 'next/link'
 
 export default function ProductPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [products, setProducts] = useState<any[]>([]);
 
     useEffect(() => {

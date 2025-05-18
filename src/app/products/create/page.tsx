@@ -5,36 +5,83 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation'
 
 export default function AddProductForm() {
+  type Tier = {
+  min: number;
+  max: number;
+  value: number;
+};
+
+type Discount = {
+  type: "fixed" | "percentage" | "conditional" | "tiered" | "cap";
+  value?: number;
+  condition?: number;
+  maxDiscount?: number;
+  tiers?: Tier[];
+};
+
    const router = useRouter()
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [originalPrice, setOriginalPrice] = useState(0);
-  const [discounts, setDiscounts] = useState([]);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
 
   const addDiscount = () => {
     setDiscounts([...discounts, { type: "fixed", value: 0 }]);
   };
 
-  const updateDiscount = (index, field, value) => {
-    const newDiscounts = [...discounts];
-    newDiscounts[index][field] = value;
-    setDiscounts(newDiscounts);
-  };
+  // const updateDiscount = (index: number, field: string, value: string | number) => {
+  //   const newDiscounts = [...discounts];
+  //   newDiscounts[index][field] = value;
+  //   setDiscounts(newDiscounts);
+  // };
 
-  const updateTier = (discountIndex, tierIndex, field, value) => {
-    const newDiscounts = [...discounts];
-    newDiscounts[discountIndex].tiers[tierIndex][field] = value;
-    setDiscounts(newDiscounts);
+  const updateDiscount = (
+  index: number,
+  field: keyof Discount,
+  value: string | number
+) => {
+  const newDiscounts = [...discounts];
+  newDiscounts[index] = {
+    ...newDiscounts[index],
+    [field]: value,
   };
+  setDiscounts(newDiscounts);
+};
 
-  const addTier = (index) => {
+  // const updateTier = (discountIndex: number, tierIndex: string | number, field: string, value: number) => {
+  //   const newDiscounts = [...discounts];
+  //   newDiscounts[discountIndex].tiers[tierIndex][field] = value;
+  //   setDiscounts(newDiscounts);
+  // };
+
+  const updateTier = (
+  discountIndex: number,
+  tierIndex: number,
+  field: keyof Tier,
+  value: number
+) => {
+  const newDiscounts = [...discounts];
+  if (!newDiscounts[discountIndex].tiers) return; // safety check
+  const newTiers = [...newDiscounts[discountIndex].tiers];
+  newTiers[tierIndex] = {
+    ...newTiers[tierIndex],
+    [field]: value,
+  };
+  newDiscounts[discountIndex] = {
+    ...newDiscounts[discountIndex],
+    tiers: newTiers,
+  };
+  setDiscounts(newDiscounts);
+};
+
+  const addTier = (index: number) => {
     const newDiscounts = [...discounts];
     if (!newDiscounts[index].tiers) newDiscounts[index].tiers = [];
     newDiscounts[index].tiers.push({ min: 0, max: 0, value: 0 });
     setDiscounts(newDiscounts);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     const payload = {
       name,
@@ -77,7 +124,7 @@ export default function AddProductForm() {
         type="number"
         placeholder="Harga Asli"
         value={originalPrice}
-        onChange={(e) => setOriginalPrice(e.target.value)}
+        onChange={(e) => setOriginalPrice(Number(e.target.value))}
       />
 
       <div className="space-y-2">
@@ -123,7 +170,7 @@ export default function AddProductForm() {
               </div>
             ) : d.type === "tiered" ? (
               <div className="space-y-2">
-                {d.tiers?.map((tier, j) => (
+                {d.tiers?.map((tier: { min: string | number | readonly string[] | undefined; max: string | number | readonly string[] | undefined; value: string | number | readonly string[] | undefined; }, j: number ) => (
                   <div key={j} className="flex gap-2">
                     <input
                       type="number"

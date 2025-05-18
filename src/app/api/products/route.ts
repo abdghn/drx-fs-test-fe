@@ -1,8 +1,10 @@
 import axios from 'axios';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BE_URL
+
 export async function GET() {
   try {
-    const response = await axios.get('http://localhost:8080/products');
+    const response = await axios.get(BASE_URL + 'products');
     return new Response(JSON.stringify(response.data), {
       status: 200,
     });
@@ -18,7 +20,7 @@ export async function POST(req: Request) {
     
     const data = await req.json();
 
-    const response = await axios.post('http://localhost:8080/products', data);
+    const response = await axios.post(BASE_URL + 'products', data);
     return new Response(JSON.stringify(response.data), {
       status: 200,
     });
